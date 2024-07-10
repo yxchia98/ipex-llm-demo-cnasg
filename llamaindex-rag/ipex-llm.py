@@ -2,28 +2,31 @@
 import warnings
 from llama_index.llms.ipex_llm import IpexLLM
 
-# Transform a string into input zephyr-specific input
 def completion_to_prompt(completion):
-    return f"<|system|>\n<|end|>\n<|user|>\n{completion}<|end|>\n<|assistant|>\n"
+    return f"<|system|>\nYou are a helpful AI assistant<|end|>\n<|user|>\n{completion}<|end|>\n<|assistant|>\n"
 
 
-# Transform a list of chat messages into zephyr-specific input
 def messages_to_prompt(messages):
     prompt = ""
+    system_found = False
     for message in messages:
         if message.role == "system":
             prompt += f"<|system|>\n{message.content}<|end|>\n"
+            system_found = True
         elif message.role == "user":
             prompt += f"<|user|>\n{message.content}<|end|>\n"
         elif message.role == "assistant":
-            prompt += f"<|assistant|>\n{message.content}\n"
+            prompt += f"<|assistant|>\n{message.content}<|end|>\n"
+        else:
+            prompt += f"<|user|>\n{message.content}<|end|>\n"
 
-    # ensure we start with a system prompt, insert blank if needed
-    if not prompt.startswith("<|system|>\n"):
-        prompt = "<|system|>\n<|end|>\n" + prompt
+    # trailing prompt
+    prompt += "<|assistant|>\n"
 
-    # add final assistant prompt
-    prompt = prompt + "<|assistant|>\n"
+    if not system_found:
+        prompt = (
+            "<|system|>\nYou are a helpful AI assistant.<|end|>\n" + prompt
+        )
 
     return prompt
 
@@ -57,9 +60,8 @@ llm = IpexLLM.from_model_id_low_bit(
     context_window=4096,
     max_new_tokens=2048,
     generate_kwargs={"temperature": 0.0, "do_sample": False},
-    completion_to_prompt=completion_to_prompt,
+    # completion_to_prompt=completion_to_prompt,
     messages_to_prompt=messages_to_prompt,
-
 )
 
 
