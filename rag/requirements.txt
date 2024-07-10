@@ -24,6 +24,8 @@ dataclasses-json==0.6.7
 datasets==2.20.0
 Deprecated==1.2.14
 dill==0.3.8
+dirtyjson==1.0.8
+distro==1.9.0
 dnspython==2.6.1
 docstring_parser==0.16
 email_validator==2.2.0
@@ -63,6 +65,10 @@ langchain-core==0.2.10
 langchain-text-splitters==0.2.2
 langchainhub==0.1.20
 langsmith==0.1.83
+llama-cloud==0.0.6
+llama-index-core==0.10.53.post1
+llama-index-embeddings-ipex-llm==0.1.5
+llama-index-llms-ipex-llm==0.1.8
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
 marshmallow==3.21.3
@@ -73,10 +79,13 @@ mpmath==1.3.0
 multidict==6.0.5
 multiprocess==0.70.16
 mypy-extensions==1.0.0
+nest-asyncio==1.6.0
 networkx==3.3
+nltk==3.8.1
 numpy==1.26.4
 oauthlib==3.2.2
 onnxruntime==1.18.1
+openai==1.35.12
 opentelemetry-api==1.25.0
 opentelemetry-exporter-otlp-proto-common==1.25.0
 opentelemetry-exporter-otlp-proto-grpc==1.25.0
@@ -119,7 +128,7 @@ rsa==4.9
 safetensors==0.4.3
 scikit-learn==1.5.0
 scipy==1.14.0
-sentence-transformers==3.0.1
+sentence-transformers==2.6.1
 sentencepiece==0.2.0
 shellingham==1.5.4
 shtab==1.7.1
@@ -132,6 +141,7 @@ sympy==1.13.0rc3
 tabulate==0.9.0
 tenacity==8.4.2
 threadpoolctl==3.5.0
+tiktoken==0.7.0
 tokenizers==0.15.2
 tomli==2.0.1
 torch==2.1.2+cpu
