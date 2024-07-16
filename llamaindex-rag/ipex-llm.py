@@ -39,8 +39,8 @@ warnings.filterwarnings(
 
 
 # llm = IpexLLM.from_model_id(
-#     model_name="/llm-models/hf-models/Phi-3-mini-4k-instruct",
-#     tokenizer_name="/llm-models/hf-models/Phi-3-mini-4k-instruct",
+#     model_name="/llm-models/hf-models/Qwen2-1.5B-Instruct",
+#     tokenizer_name="/llm-models/hf-models/Qwen2-1.5B-Instruct",
 #     context_window=512,
 #     max_new_tokens=128,
 #     generate_kwargs={"do_sample": False},
@@ -49,9 +49,9 @@ warnings.filterwarnings(
 # )
 
 
-hf_model_path = "/llm-models/hf-models/Phi-3-mini-4k-instruct"
+hf_model_path = "/llm-models/hf-models/Qwen2-0.5B-Instruct"
 
-saved_lowbit_model_path = "/llm-models/ipex-models/Phi-3-mini-4k-instruct"
+saved_lowbit_model_path = "/llm-models/ipex-models/Qwen2-0.5B-Instruct"
 
 llm = IpexLLM.from_model_id_low_bit(
     model_name=saved_lowbit_model_path,

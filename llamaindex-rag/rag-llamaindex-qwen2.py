@@ -1,5 +1,4 @@
 # import
-from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core import StorageContext, Settings, PromptTemplate, VectorStoreIndex, SimpleDirectoryReader, get_response_synthesizer
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.query_engine import RetrieverQueryEngine
@@ -19,16 +18,25 @@ class Custom_Query_Engine():
         self.saved_lowbit_model_path = "/llm-models/ipex-models/Qwen2-1.5B-Instruct"
         
 
-        self.llm = IpexLLM.from_model_id_low_bit(
-            model_name=self.saved_lowbit_model_path,
+        # self.llm = IpexLLM.from_model_id_low_bit(
+        #     model_name=self.saved_lowbit_model_path,
+        #     tokenizer_name=self.hf_model_path,
+        #     # tokenizer_name=saved_lowbit_model_path,  # copy the tokenizers to saved path if you want to use it this way
+        #     context_window=4096,
+        #     max_new_tokens=2048,
+        #     generate_kwargs={"temperature": 0.0, "do_sample": False},
+        #     completion_to_prompt=self.completion_to_prompt,
+        #     messages_to_prompt=self.messages_to_prompt,
+        #     )
+        self.llm = IpexLLM.from_model_id(
+            model_name=self.hf_model_path,
             tokenizer_name=self.hf_model_path,
-            # tokenizer_name=saved_lowbit_model_path,  # copy the tokenizers to saved path if you want to use it this way
             context_window=4096,
             max_new_tokens=2048,
-            generate_kwargs={"temperature": 0.0, "do_sample": False},
+            generate_kwargs={"do_sample": False},
             completion_to_prompt=self.completion_to_prompt,
             messages_to_prompt=self.messages_to_prompt,
-            )
+        )
 
         self.embed_model = IpexLLMEmbedding(model_name="/llm-models/hf-models/bge-small-en-v1.5", trust_remote_code=True)
             

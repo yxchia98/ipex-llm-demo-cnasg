@@ -1,5 +1,4 @@
 # import
-from llama_index.vector_stores.chroma import ChromaVectorStore
 from llama_index.core import StorageContext, Settings, PromptTemplate, VectorStoreIndex, SimpleDirectoryReader, get_response_synthesizer
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core.query_engine import RetrieverQueryEngine
