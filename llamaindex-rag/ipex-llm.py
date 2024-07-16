@@ -49,9 +49,9 @@ warnings.filterwarnings(
 # )
 
 
-hf_model_path = "/llm-models/hf-models/Qwen2-0.5B-Instruct"
+hf_model_path = "/llm-models/hf-models/Qwen2-1.5B-Instruct"
 
-saved_lowbit_model_path = "/llm-models/ipex-models/Qwen2-0.5B-Instruct"
+saved_lowbit_model_path = "/llm-models/ipex-models/Qwen2-1.5B-Instruct"
 
 llm = IpexLLM.from_model_id_low_bit(
     model_name=saved_lowbit_model_path,
