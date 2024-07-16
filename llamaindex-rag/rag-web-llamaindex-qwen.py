@@ -8,8 +8,73 @@ from llama_index.llms.ipex_llm import IpexLLM
 from llama_index.embeddings.ipex_llm import IpexLLMEmbedding
 from llama_index.readers.web import SimpleWebPageReader
 from llama_index.readers.web import BeautifulSoupWebReader
-import chromadb
-import gradio as gr
+
+class Custom_Query_Engine():
+    def __init__(self):
+        self.SYSTEM_PROMPT = """You are an AI assistant that answers questions in a friendly manner. Here are some rules you always follow:
+        - Generate human readable output, avoid creating output with gibberish text.
+        - Generate only the requested output, don't include any other language before or after the requested output.
+        """
+        self.hf_model_path = "/llm-models/hf-models/Qwen2-1.5B-Instruct"
+        self.saved_lowbit_model_path = "/llm-models/ipex-models/Qwen2-1.5B-Instruct"
+        
+
+        self.llm = IpexLLM.from_model_id_low_bit(
+            model_name=self.saved_lowbit_model_path,
+            tokenizer_name=self.hf_model_path,
+            # tokenizer_name=saved_lowbit_model_path,  # copy the tokenizers to saved path if you want to use it this way
+            context_window=4096,
+            max_new_tokens=2048,
+            generate_kwargs={"temperature": 0.0, "do_sample": False},
+            completion_to_prompt=self.completion_to_prompt,
+            messages_to_prompt=self.messages_to_prompt,
+            )
+
+        self.embed_model = IpexLLMEmbedding(model_name="/llm-models/hf-models/bge-small-en-v1.5", trust_remote_code=True)
+            
+        Settings.llm = self.llm
+        Settings.embed_model = self.embed_model
+
+        self.documents = SimpleDirectoryReader("./data/paul_graham/").load_data()
+        self.index = VectorStoreIndex.from_documents(self.documents, show_progress=True)
+        self.query_engine = self.index.as_query_engine(streaming=True, similarity_top_k=2)
+
+    def reload(self, path):
+        del self.query_engine
+        del self.index
+        self.documents = SimpleDirectoryReader("/gradio/rag/").load_data()
+        self.index = VectorStoreIndex.from_documents(self.documents, show_progress=True)
+        self.query_engine = self.index.as_query_engine(streaming=True, similarity_top_k=2)
+
+    def query(self, message):
+        return self.query_engine.query(message)
+
+    def completion_to_prompt(self, completion):
+        print(f"<|im_start|>system\n{self.SYSTEM_PROMPT}<|im_end|>\n<|im_start|>user\n{completion}<|im_end|>\n<|im_start|>assistant\n")
+        return f"<|im_start|>system\n{self.SYSTEM_PROMPT}<|im_end|>\n<|im_start|>user\n{completion}<|im_end|>\n<|im_start|>assistant\n"
+
+
+    def messages_to_prompt(self, messages):
+        prompt = ""
+        for message in messages:
+            if message.role == "system":
+                prompt += f"<|im_start|>system\n{message.content}<|im_end|>\n"
+            elif message.role == "user":
+                prompt += f"<|im_start|>user\n{message.content}<|im_end|>\n"
+            elif message.role == "assistant":
+                prompt += f"<|im_start|>assistant\n{message.content}<|im_end|>\n"
+
+        if not prompt.startswith("<|im_start|>system"):
+            prompt = "<|im_start|>system\n" + prompt
+
+        prompt = prompt + "<|im_start|>assistant\n"
+
+        print(prompt)
+
+        return prompt
+    
+
+         
 
 
 # SYSTEM_PROMPT = """You are an AI assistant that answers questions in a friendly manner, based on the given source documents. Here are some rules you always follow:
@@ -20,106 +85,42 @@ import gradio as gr
 # - Never generate offensive or foul language.
 # """
 
-SYSTEM_PROMPT = """You are an AI assistant that answers questions in a friendly manner"""
-
-# Transform a string into input zephyr-specific input
-def completion_to_prompt(completion):
-    print(f"<|im_start|>system\n{SYSTEM_PROMPT}<|im_end|>\n<|im_start|>user\n{completion}<|im_end|>\n<|im_start|>assistant\n")
-    return f"<|im_start|>system\n{SYSTEM_PROMPT}<|im_end|>\n<|im_start|>user\n{completion}<|im_end|>\n<|im_start|>assistant\n"
-
-def messages_to_prompt(messages):
-    prompt = ""
-    for message in messages:
-        if message.role == "system":
-            prompt += f"<|im_start|>system\n{message.content}<|im_end|>\n"
-        elif message.role == "user":
-            prompt += f"<|im_start|>user\n{message.content}<|im_end|>\n"
-        elif message.role == "assistant":
-            prompt += f"<|im_start|>assistant\n{message.content}<|im_end|>\n"
-
-    if not prompt.startswith("<|im_start|>system"):
-        prompt = "<|im_start|>system\n" + prompt
-
-    prompt = prompt + "<|im_start|>assistant\n"
-
-    return prompt
-
-
-hf_model_path = "/llm-models/hf-models/Qwen2-1.5B-Instruct"
-saved_lowbit_model_path = "/llm-models/ipex-models/Qwen2-1.5B-Instruct"
-
-llm = IpexLLM.from_model_id_low_bit(
-    model_name=saved_lowbit_model_path,
-    tokenizer_name=hf_model_path,
-    # tokenizer_name=saved_lowbit_model_path,  # copy the tokenizers to saved path if you want to use it this way
-    context_window=4096,
-    max_new_tokens=2048,
-    generate_kwargs={"temperature": 0.0, "do_sample": False},
-    completion_to_prompt=completion_to_prompt,
-    messages_to_prompt=messages_to_prompt,
-
-)
-
-embed_model = IpexLLMEmbedding(model_name="/llm-models/hf-models/bge-large-en-v1.5", trust_remote_code=True)
-
-Settings.llm = llm
-Settings.embed_model = embed_model
-Settings.similarity_top_k = 3
 
 # load documents
 # documents = SimpleDirectoryReader("./data/paul_graham/").load_data()
 # documents = SimpleWebPageReader(html_to_text=True).load_data(
 #     ["http://paulgraham.com/worked.html", "https://jujutsu-kaisen.fandom.com/wiki/Satoru_Gojo"]
 # )
-documents = BeautifulSoupWebReader().load_data(
-    ["http://paulgraham.com/worked.html", "https://jujutsu-kaisen.fandom.com/wiki/Satoru_Gojo"]
-)
-
-
-index = VectorStoreIndex.from_documents(documents)
-query_engine = index.as_query_engine(streaming=True, similarity_top_k=2)
-# # configure retriever
-# retriever = VectorIndexRetriever(
-#     index=index,
-#     similarity_top_k=5,
+# documents = BeautifulSoupWebReader().load_data(
+#     ["http://paulgraham.com/worked.html", "https://jujutsu-kaisen.fandom.com/wiki/Satoru_Gojo"]
 # )
 
-# # configure response synthesizer
-# response_synthesizer = get_response_synthesizer()
-
-# # assemble query engine
-# query_engine = RetrieverQueryEngine(
-#     retriever=retriever,
-#     response_synthesizer=response_synthesizer,
-#     node_postprocessors=[SimilarityPostprocessor(similarity_cutoff=0.7)],
-# )
-
-# response = query_engine.query("For the author, what happened at interleaf?")
-# response = query_engine.query("Who is gojo and what does he do?")
-# for token in response.response_gen:
-#     print(token, end="")
-
-
-
-# def generate_text(prompt):
-#     return ["generated_text"]
-
-
-# with gr.Blocks(theme=gr.themes.Glass().set(block_title_text_color= "black", body_background_fill="black", input_background_fill= "black", body_text_color="white")) as demo:
-    
-#     gr.Markdown("<style>h1 {text-align: center;display: block;}</style><h1>Hotel Reviews Chatbot</h1>")
-#     with gr.Row():
-#         output_text = gr.Textbox(lines=20)
-        
-#     with gr.Row():
-#         input_text = gr.Textbox(label='Enter your query here')
-        
-#     input_text.submit(fn=generate_text, inputs=input_text, outputs=[output_text])
-
-# demo.launch(share=True)
 
 import time
 import gradio as gr
+from tqdm import tqdm
+import shutil
+import os
+from pathlib import Path
+import glob
+
+
+css = """
+.app-interface {
+    height:90vh;
+}
+.chat-interface {
+    height: 90vh;
+}
+.file-interface {
+    height: 40vh;
+}
+.web-interface {
+    height: 30vh;
+}
+"""
+
+query_engine = Custom_Query_Engine()
 
 def stream_response(message, history):
     response = query_engine.query(message)
@@ -129,30 +130,47 @@ def stream_response(message, history):
         res = str(res) + str(token)
         yield res
 
-gr.ChatInterface(stream_response).launch()
+def vectorize(files, progress=gr.Progress()):
+    Path("/gradio/rag").mkdir(parents=True, exist_ok=True)
+    UPLOAD_FOLDER = "/gradio/rag"
+
+    prev_files = glob.glob(f"{UPLOAD_FOLDER}/*")
+    for f in prev_files:
+        os.remove(f)
+
+    if not files:
+        return []
+    
+    file_paths = [file.name for file in files]
+    # for file in progress.tqdm(files, desc="Vectorizing..."):
+    #     print(file.name, file)
+    for file in files:
+        shutil.copy(file.name, UPLOAD_FOLDER)
+
+    # documents = SimpleDirectoryReader("/gradio/rag/").load_data()
+    # index = VectorStoreIndex.from_documents(documents, show_progress=True)
+    # query_engine = index.as_query_engine(streaming=True, similarity_top_k=2)
+    query_engine.reload(UPLOAD_FOLDER)
+    
+    return file_paths
 
 
-# import gradio as gr
-# import time
+with gr.Blocks(css=css) as demo:
+    with gr.Row(equal_height=True, elem_classes=["app-interface"]):
+        with gr.Column(scale=4, elem_classes=["chat-interface"]):
+            test = gr.ChatInterface(stream_response)
+        with gr.Column(scale=1):
+            file_input = gr.File(elem_classes=["file-interface"], file_types=["pdf", "csv", "text", "html"], file_count="multiple")
+            # upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video", "pdf", "csv", "text"], file_count="multiple")
+            # upload_button.upload(upload_file, upload_button, file_input)
+            vectorize_button = gr.Button("Vectorize Files")
+            vectorize_button.click(fn=vectorize, inputs=file_input, outputs=file_input)
+            
 
-# def count_files(message, history):
-#     num_files = len(message["files"])
-#     return f"You uploaded {num_files} files"
-
-# demo = gr.ChatInterface(fn=count_files, examples=[{"text": "Hello", "files": []}], title="Echo Bot", multimodal=True)
-
-# demo.launch()
+demo.launch()
 
 
-# import gradio as gr
 
-# def upload_file(files):
-#     file_paths = [file.name for file in files]
-#     return file_paths
+# what difference does dell technologies make in on-premise inferencing?
 
-# with gr.Blocks() as demo:
-#     file_output = gr.File()
-#     upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video"], file_count="multiple")
-#     upload_button.upload(upload_file, upload_button, file_output)
 
-# demo.launch()
