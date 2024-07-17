@@ -7,6 +7,19 @@ from llama_index.llms.ipex_llm import IpexLLM
 from llama_index.embeddings.ipex_llm import IpexLLMEmbedding
 from llama_index.readers.web import SimpleWebPageReader
 from llama_index.readers.web import BeautifulSoupWebReader
+import time
+import gradio as gr
+from tqdm import tqdm
+import shutil
+import os
+from pathlib import Path
+import glob
+
+
+os.environ['GRADIO_TEMP_DIR'] = "/ipex-llm-demo-cnasg/llamaindex-rag/temp/"
+
+RAG_UPLOAD_FOLDER = "/ipex-llm-demo-cnasg/llamaindex-rag/rag-documents/"
+
 
 class Custom_Query_Engine():
     def __init__(self):
@@ -50,7 +63,7 @@ class Custom_Query_Engine():
     def reload(self, path):
         del self.query_engine
         del self.index
-        self.documents = SimpleDirectoryReader("/gradio/rag/").load_data()
+        self.documents = SimpleDirectoryReader(RAG_UPLOAD_FOLDER).load_data()
         self.index = VectorStoreIndex.from_documents(self.documents, show_progress=True)
         self.query_engine = self.index.as_query_engine(streaming=True, similarity_top_k=2)
 
@@ -104,15 +117,6 @@ class Custom_Query_Engine():
 # )
 
 
-import time
-import gradio as gr
-from tqdm import tqdm
-import shutil
-import os
-from pathlib import Path
-import glob
-
-
 css = """
 .app-interface {
     height:90vh;
@@ -139,10 +143,10 @@ def stream_response(message, history):
         yield res
 
 def vectorize(files, progress=gr.Progress()):
-    Path("/gradio/rag").mkdir(parents=True, exist_ok=True)
-    UPLOAD_FOLDER = "/gradio/rag"
+    Path(RAG_UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
+    UPLOAD_FOLDER = RAG_UPLOAD_FOLDER
 
-    prev_files = glob.glob(f"{UPLOAD_FOLDER}/*")
+    prev_files = glob.glob(f"{UPLOAD_FOLDER}*")
     for f in prev_files:
         os.remove(f)
 
@@ -150,14 +154,9 @@ def vectorize(files, progress=gr.Progress()):
         return []
     
     file_paths = [file.name for file in files]
-    # for file in progress.tqdm(files, desc="Vectorizing..."):
-    #     print(file.name, file)
     for file in files:
         shutil.copy(file.name, UPLOAD_FOLDER)
 
-    # documents = SimpleDirectoryReader("/gradio/rag/").load_data()
-    # index = VectorStoreIndex.from_documents(documents, show_progress=True)
-    # query_engine = index.as_query_engine(streaming=True, similarity_top_k=2)
     query_engine.reload(UPLOAD_FOLDER)
     
     return file_paths
