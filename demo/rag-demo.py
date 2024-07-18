@@ -134,7 +134,7 @@ css = """
     height:90vh;
 }
 .chat-interface {
-    height: 90vh;
+    height: 85vh;
 }
 .file-interface {
     height: 40vh;
@@ -191,9 +191,17 @@ def toggle_knowledge_base(use_rag):
 
 
 with gr.Blocks(css=css) as demo:
+    # gr.Markdown(
+    # """
+    # # **Retrieval Augmented Generation with only CPU**
+    # """)
+    gr.Markdown(
+    """
+    <h1 style="text-align: center;">Retrieval Augmented Generation with only CPU 💻📑✨</h3>
+    """)
     with gr.Row(equal_height=True, elem_classes=["app-interface"]):
         with gr.Column(scale=4, elem_classes=["chat-interface"]):
-            test = gr.ChatInterface(stream_response)
+            test = gr.ChatInterface(fn=stream_response)
         with gr.Column(scale=1):
             file_input = gr.File(elem_classes=["file-interface"], file_types=["pdf", "csv", "text", "html"], file_count="multiple")
             # upload_button = gr.UploadButton("Click to Upload a File", file_types=["image", "video", "pdf", "csv", "text"], file_count="multiple")
