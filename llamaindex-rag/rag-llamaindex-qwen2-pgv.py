@@ -27,8 +27,8 @@ class Custom_Query_Engine():
         - Generate human readable output, avoid creating output with gibberish text.
         - Generate only the requested output, don't include any other language before or after the requested output.
         """
-        self.hf_model_path = "/llm-models/hf-models/Qwen2-0.5B-Instruct"
-        self.saved_lowbit_model_path = "/llm-models/ipex-models/Qwen2-0.5B-Instruct"
+        self.hf_model_path = "/llm-models/hf-models/Qwen2-1.5B-Instruct"
+        self.saved_lowbit_model_path = "/llm-models/ipex-models/Qwen2-1.5B-Instruct"
         
 
         self.llm = IpexLLM.from_model_id_low_bit(
