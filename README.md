@@ -41,7 +41,7 @@ python download_model.py
 
 ### Start IPEX-LLM container & install dependencies
 ```bash
-docker run -d -it --net host -v ../demo:/demo -v ../llm-models:/llm-models intelanalytics/ipex-llm-cpu:ipex-llm-cpu:2.1.0-SNAPSHOT
+docker run -d -it --net host -v ../demo:/demo -v ../llm-models:/llm-models intelanalytics/ipex-llm-cpu:2.1.0-SNAPSHOT
 ```
 ```bash
 docker exec -it <container-id> bash
