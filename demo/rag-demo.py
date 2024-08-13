@@ -212,7 +212,7 @@ with gr.Blocks(css=css) as demo:
             use_rag.select(fn=toggle_knowledge_base, inputs=use_rag)
             
 
-demo.launch()
+demo.launch(server_name="0.0.0.0", ssl_verify=False)
 
 
 

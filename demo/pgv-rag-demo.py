@@ -62,7 +62,7 @@ class Custom_Query_Engine():
         Settings.embed_model = self.embed_model
 
 
-        self.connection_string = f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_URL']}:{os.environ['DB_PORT']}"
+        self.connection_string = f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_URL']}:{os.environ['DB_PORT']}?sslmode={os.environ['SSL_MODE']}"
         self.db_name = os.environ['DB_NAME']
         self.conn = psycopg2.connect(self.connection_string)
         self.conn.autocommit = True
@@ -241,7 +241,7 @@ with gr.Blocks(css=css) as demo:
             use_rag.select(fn=toggle_knowledge_base, inputs=use_rag)
             
 
-demo.launch()
+demo.launch(server_name="0.0.0.0", ssl_verify=False)
 
 
 

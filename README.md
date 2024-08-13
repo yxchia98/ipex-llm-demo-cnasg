@@ -12,6 +12,10 @@ docker pull quay.io/yxchia98/ipex-llm-qwen2-rag:latest
 ```bash
 docker run --rm --net host quay.io/yxchia98/ipex-llm-qwen2-rag:latest
 ```
+If you're in an environment where you cant expose port 7860, run the following command where you expose it on port 80:
+```bash
+docker run --rm -p 80:7860 quay.io/yxchia98/ipex-llm-qwen2-rag:latest
+```
 ### Accessing the RAG Chatbot Demo
 The chatbot will be started on localhost port 7860 (default gradio port)\
 To access the chatbot, simply access: http://127.0.0.1:7860/
