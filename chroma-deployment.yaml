@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: chromadb
+  name: chromadb-deployment
+  namespace: bala-mtr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chromadb
+  template:
+    metadata:
+      labels:
+        app: chromadb
+    spec:
+      serviceAccountName: privileged-sa
+      automountServiceAccountToken: false
+      containers:
+      - name: chromadb
+        securityContext:
+          runAsUser: 0
+          privileged: true
+        image: chromadb/chroma:latest
+        ports:
+          - containerPort: 8000
+            protocol: TCP

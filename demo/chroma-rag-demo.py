@@ -7,9 +7,8 @@ from llama_index.llms.ipex_llm import IpexLLM
 from llama_index.embeddings.ipex_llm import IpexLLMEmbedding
 from llama_index.readers.web import SimpleWebPageReader
 from llama_index.readers.web import BeautifulSoupWebReader
-from llama_index.vector_stores.postgres import PGVectorStore
-from sqlalchemy import make_url
-import psycopg2
+from llama_index.vector_stores.chroma import ChromaVectorStore
+import chromadb
 import time
 import gradio as gr
 from tqdm import tqdm
@@ -62,26 +61,29 @@ class Custom_Query_Engine():
         Settings.embed_model = self.embed_model
 
 
-        self.connection_string = f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_URL']}:{os.environ['DB_PORT']}?sslmode={os.environ['SSL_MODE']}&connect_timeout=10"
-        self.db_name = os.environ['DB_NAME']
-        self.conn = psycopg2.connect(self.connection_string)
-        self.conn.autocommit = True
+        # self.connection_string = f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_URL']}:{os.environ['DB_PORT']}?sslmode={os.environ['SSL_MODE']}&connect_timeout=10"
+        # self.db_name = os.environ['DB_NAME']
+        # self.conn = psycopg2.connect(self.connection_string)
+        # self.conn.autocommit = True
 
-        with self.conn.cursor() as c:
-            c.execute(f"DROP DATABASE IF EXISTS {self.db_name}")
-            c.execute(f"CREATE DATABASE {self.db_name}")
+        # with self.conn.cursor() as c:
+        #     c.execute(f"DROP DATABASE IF EXISTS {self.db_name}")
+        #     c.execute(f"CREATE DATABASE {self.db_name}")
         
-        self.url = make_url(self.connection_string)
-        self.vector_store = PGVectorStore.from_params(
-            database=self.db_name,
-            host=self.url.host,
-            password=self.url.password,
-            port=self.url.port,
-            user=self.url.username,
-            table_name="rag_data",
-            embed_dim=384,  # bge-small-en-v1.5 embedding dimension
-        )
+        # self.url = make_url(self.connection_string)
+        # self.vector_store = PGVectorStore.from_params(
+        #     database=self.db_name,
+        #     host=self.url.host,
+        #     password=self.url.password,
+        #     port=self.url.port,
+        #     user=self.url.username,
+        #     table_name="rag_data",
+        #     embed_dim=384,  # bge-small-en-v1.5 embedding dimension
+        # )
 
+        self.remote_db = chromadb.HttpClient(host="http://chromadb-deployment-bala-mtr.apps.aib-sno.cnasg.dellcsc.com")
+        self.chroma_collection = self.remote_db.get_or_create_collection("quickstart")
+        self.vector_store = ChromaVectorStore(chroma_collection=self.chroma_collection)
         self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
 
 

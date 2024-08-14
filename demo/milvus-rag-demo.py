@@ -62,24 +62,28 @@ class Custom_Query_Engine():
         Settings.embed_model = self.embed_model
 
 
-        self.connection_string = f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_URL']}:{os.environ['DB_PORT']}?sslmode={os.environ['SSL_MODE']}&connect_timeout=10"
-        self.db_name = os.environ['DB_NAME']
-        self.conn = psycopg2.connect(self.connection_string)
-        self.conn.autocommit = True
+        # self.connection_string = f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_URL']}:{os.environ['DB_PORT']}?sslmode={os.environ['SSL_MODE']}"
+        # self.db_name = os.environ['DB_NAME']
+        # self.conn = psycopg2.connect(self.connection_string)
+        # self.conn.autocommit = True
 
-        with self.conn.cursor() as c:
-            c.execute(f"DROP DATABASE IF EXISTS {self.db_name}")
-            c.execute(f"CREATE DATABASE {self.db_name}")
+        # with self.conn.cursor() as c:
+        #     c.execute(f"DROP DATABASE IF EXISTS {self.db_name}")
+        #     c.execute(f"CREATE DATABASE {self.db_name}")
         
-        self.url = make_url(self.connection_string)
-        self.vector_store = PGVectorStore.from_params(
-            database=self.db_name,
-            host=self.url.host,
-            password=self.url.password,
-            port=self.url.port,
-            user=self.url.username,
-            table_name="rag_data",
-            embed_dim=384,  # bge-small-en-v1.5 embedding dimension
+        # self.url = make_url(self.connection_string)
+        # self.vector_store = PGVectorStore.from_params(
+        #     database=self.db_name,
+        #     host=self.url.host,
+        #     password=self.url.password,
+        #     port=self.url.port,
+        #     user=self.url.username,
+        #     table_name="rag_data",
+        #     embed_dim=384,  # bge-small-en-v1.5 embedding dimension
+        # )
+
+        self.vector_store = MilvusVectorStore(
+            uri="http://milvus.cnasg.dellcsc.com:443", dim=1536, overwrite=True
         )
 
         self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
