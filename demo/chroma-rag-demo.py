@@ -51,8 +51,16 @@ class Custom_Query_Engine():
         Settings.llm = self.llm
         Settings.embed_model = self.embed_model
 
-        self.remote_db = chromadb.HttpClient(host="http://chromadb-deployment-bala-mtr.apps.aib-sno.cnasg.dellcsc.com")
-        self.chroma_collection = self.remote_db.get_or_create_collection("quickstart")
+        # self.remote_db = chromadb.HttpClient(host=f"https://chromadb.cnasg.dellcsc.com:443")
+        self.remote_db = chromadb.HttpClient(host=f"{os.environ['CHROMA_DB_URL']}:{os.environ['CHROMA_DB_PORT']}")
+
+        # check and recreate collection if exists
+        if "rag_data" in [c.name for c in self.remote_db.list_collections()]:
+            print('collection rag_data exists, deleting...')
+            self.remote_db.delete_collection(name="rag_data")
+            print('deleted collection rag_data!')
+
+        self.chroma_collection = self.remote_db.get_or_create_collection("rag_data")
         self.vector_store = ChromaVectorStore(chroma_collection=self.chroma_collection)
         self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
 

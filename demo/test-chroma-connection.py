@@ -33,7 +33,13 @@ import glob
 # vector_store = MilvusVectorStore(uri="http://milvus.cnasg.dellcsc.com:443", dim=1536, overwrite=True)
 
 
-remote_db = chromadb.HttpClient(host="http://chromadb-deployment-bala-mtr.apps.aib-sno.cnasg.dellcsc.com")
+remote_db = chromadb.HttpClient(host=f"{os.environ['CHROMA_DB_URL']}:{os.environ['CHROMA_DB_PORT']}")
+print(remote_db.list_collections())
+if "rag_data" in [c.name for c in remote_db.list_collections()]:
+    remote_db.delete_collection(name="rag_data")
+    print('deleted!')
+
+chroma_collection = remote_db.get_or_create_collection("rag_data")
 vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
 
 
