@@ -45,41 +45,11 @@ class Custom_Query_Engine():
             completion_to_prompt=self.completion_to_prompt,
             messages_to_prompt=self.messages_to_prompt,
             )
-        # self.llm = IpexLLM.from_model_id(
-        #     model_name=self.hf_model_path,
-        #     tokenizer_name=self.hf_model_path,
-        #     context_window=4096,
-        #     max_new_tokens=2048,
-        #     generate_kwargs={"do_sample": False},
-        #     completion_to_prompt=self.completion_to_prompt,
-        #     messages_to_prompt=self.messages_to_prompt,
-        # )
 
         self.embed_model = IpexLLMEmbedding(model_name="/llm-models/hf-models/bge-small-en-v1.5", trust_remote_code=True)
             
         Settings.llm = self.llm
         Settings.embed_model = self.embed_model
-
-
-        # self.connection_string = f"postgresql://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_URL']}:{os.environ['DB_PORT']}?sslmode={os.environ['SSL_MODE']}&connect_timeout=10"
-        # self.db_name = os.environ['DB_NAME']
-        # self.conn = psycopg2.connect(self.connection_string)
-        # self.conn.autocommit = True
-
-        # with self.conn.cursor() as c:
-        #     c.execute(f"DROP DATABASE IF EXISTS {self.db_name}")
-        #     c.execute(f"CREATE DATABASE {self.db_name}")
-        
-        # self.url = make_url(self.connection_string)
-        # self.vector_store = PGVectorStore.from_params(
-        #     database=self.db_name,
-        #     host=self.url.host,
-        #     password=self.url.password,
-        #     port=self.url.port,
-        #     user=self.url.username,
-        #     table_name="rag_data",
-        #     embed_dim=384,  # bge-small-en-v1.5 embedding dimension
-        # )
 
         self.remote_db = chromadb.HttpClient(host="http://chromadb-deployment-bala-mtr.apps.aib-sno.cnasg.dellcsc.com")
         self.chroma_collection = self.remote_db.get_or_create_collection("quickstart")
